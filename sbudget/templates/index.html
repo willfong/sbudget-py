@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="input-group">
+  <input type="number" id="amount" class="form-control" aria-label="Amount to add" autofocus>
+  <div class="input-group-btn">
+    <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Add to
+    </button>
+    <div class="dropdown-menu">
+      {% for type in types %}
+        <a class="dropdown-item" href="#" onClick="addAmount({{type.id}})">{{type.name}}</a>
+      {% else %}
+        <a class="dropdown-item" href="#">NONE</a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

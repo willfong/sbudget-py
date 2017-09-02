@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}
+<form action={{url_for('settingsUpdate')}} method="post">
+  <div class="form-group">
+    <label for="monthlyBudget">Monthly Budget</label>
+    <input type="number" name="monthlybudget" class="form-control" id="monthlyBudget" placeholder="{{settings.monthlyBudget}}">
+  </div>
+  <button id="updateSettings" type="submit" class="btn btn-primary">Update</button>
+</form>
+{% endblock %}

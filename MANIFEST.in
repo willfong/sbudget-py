@@ -1,0 +1,3 @@
+graft sbudget/templates
+graft sbudget/static
+include sbudget/schema.sql

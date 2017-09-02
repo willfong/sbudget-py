@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block body %}
+<h3>Monthly Report</h3>
+<table class="table">
+  <tbody>
+    <tr>
+      <td>Monthly Budget</td>
+      <td>{{report.monthbudget}}</td>
+    </tr>
+    <tr>
+      <td>Currently Spent</td>
+      <td>{{report.monthspent}}</td>
+    </tr>
+    <tr>
+      <td>Monthly Left</td>
+      <td>{{report.monthleft}}</td>
+    </tr>
+    <tr>
+      <td>Daily Average</td>
+      <td>{{report.dailyavgspent}}</td>
+    </tr>
+  </tbody>
+</table>
+{% endblock %}
