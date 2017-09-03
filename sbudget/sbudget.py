@@ -3,6 +3,7 @@ import sqlite3
 import string
 import random
 import time
+from calendar import monthrange
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
 app = Flask(__name__)
@@ -55,6 +56,7 @@ def addAmount():
 def report():
     monthcode = time.strftime("%Y%m")
     daycode = time.strftime("%d")
+    daysleft = int(monthrange(int(time.strftime("%Y")), int(time.strftime("%m")))[1]) - int(time.strftime("%d"))
     db = get_db()
     cur = db.execute('SELECT * FROM settings');
     settings = cur.fetchall()
@@ -63,11 +65,15 @@ def report():
     monthSpent = cur.fetchone()['total'] or 0
     cur = db.execute('SELECT AVG(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
     dailyAvgSpent = cur.fetchone()['total'] or 0
+    monthLeft = monthBudget - monthSpent
+    dailyAvgFuture = monthLeft / daysleft
     report = {
       "monthbudget": monthBudget,
       "monthspent": monthSpent,
-      "monthleft": monthBudget-monthSpent,
-      "dailyavgspent": dailyAvgSpent
+      "monthleft": monthLeft,
+      "dailyavgspent": dailyAvgSpent,
+      "daysleft": daysleft,
+      "dailyavgfuture": dailyAvgFuture
     }
     cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.date DESC', [monthcode])
     lastLog = cur.fetchall()
