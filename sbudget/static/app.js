@@ -1,3 +1,16 @@
+$(document).ready(function() {
+  $('.timeago').each(function() {
+    var d = $(this)[0]['innerHTML'];
+    var newDate = moment(new Date(d)).fromNow();
+    $(this).html(newDate);
+  });
+  $('.fmtdate').each(function() {
+    var d = $(this)[0]['innerHTML'];
+    var newDate = moment(new Date(d)).format('ddd, MMM Do');
+    $(this).html(newDate);
+  });
+});
+
 function addAmount(typeId) {
   var now = new Date();
   var dateCode = makeDateCode(now);
