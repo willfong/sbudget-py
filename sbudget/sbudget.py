@@ -44,7 +44,7 @@ def addAmount():
     db.execute('INSERT INTO entries (date, monthcode, daycode, type, amount) VALUES (?,?,?,?,?)',
       [request.form['date'], request.form['monthcode'], request.form['daycode'], request.form['type'], request.form['amount']])
     db.commit()
-    return 'OK'
+    return redirect(url_for('index'))
 
 @app.route('/report')
 def report():

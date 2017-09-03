@@ -1,18 +1,11 @@
-$(document).ready(function() {});
 function addAmount(typeId) {
-  var amount = $('#amount')[0].value;
   var now = new Date();
   var dateCode = makeDateCode(now);
-  $.post('addAmount', {
-    date: now,
-    monthcode: dateCode[0],
-    daycode: dateCode[1],
-    type: typeId,
-    amount: amount
-  }).then(() => {
-    $('#amount')[0].value = '';
-    $('#alertMsg').toggleClass('hidden');
-  });
+  $('#monthcode').val(dateCode[0]);
+  $('#daycode').val(dateCode[1]);
+  $('#type').val(typeId);
+  $('#date').val(now);
+  $('#form').submit();
 }
 
 function makeDateCode(d) {
