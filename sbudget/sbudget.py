@@ -46,7 +46,6 @@ def addAmount():
     db.commit()
     cur = db.execute('SELECT name FROM types WHERE id = ?', [request.form['type']])
     typeName = cur.fetchall()[0][0]
-    print typeName
     flash('{} added to {}'.format(request.form['amount'], typeName))
     return redirect(url_for('index'))
 
