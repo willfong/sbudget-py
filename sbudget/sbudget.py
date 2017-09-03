@@ -60,9 +60,9 @@ def report():
     settings = cur.fetchall()
     monthBudget = settings[0]['monthlyBudget']
     cur = db.execute('SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
-    monthSpent = cur.fetchone()['total']
+    monthSpent = cur.fetchone()['total'] or 0
     cur = db.execute('SELECT AVG(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
-    dailyAvgSpent = cur.fetchone()['total']
+    dailyAvgSpent = cur.fetchone()['total'] or 0
     report = {
       "monthbudget": monthBudget,
       "monthspent": monthSpent,
@@ -73,7 +73,7 @@ def report():
     lastLog = cur.fetchall()
     return render_template('report.html', report=report, lastLog=lastLog)
 
-@app.route('/settigs')
+@app.route('/settings')
 def settings():
     db = get_db()
     cur = db.execute('SELECT * FROM settings');
