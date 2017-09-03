@@ -36,7 +36,9 @@ def index():
     db = get_db()
     cur = db.execute('SELECT id, name FROM types')
     types = cur.fetchall()
-    return render_template('index.html', types=types)
+    cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id ORDER BY e.date DESC LIMIT 5')
+    last5 = cur.fetchall()
+    return render_template('index.html', types=types, last5=last5)
 
 @app.route('/addAmount', methods=['POST'])
 def addAmount():
@@ -67,7 +69,9 @@ def report():
       "monthleft": monthBudget-monthSpent,
       "dailyavgspent": dailyAvgSpent
     }
-    return render_template('report.html', report=report)
+    cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.date DESC', [monthcode])
+    lastLog = cur.fetchall()
+    return render_template('report.html', report=report, lastLog=lastLog)
 
 @app.route('/settigs')
 def settings():

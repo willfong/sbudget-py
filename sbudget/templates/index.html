@@ -21,4 +21,15 @@
   <input type="hidden" id="type" name="type">
   <input type="hidden" id="date" name="date">
 </form>
+<table class="table">
+  <tbody>
+    {% for item in last5 %}
+    <tr>
+      <td>{{item.date}}</td>
+      <td>{{item.name}}</td>
+      <td>{{item.amount}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}
