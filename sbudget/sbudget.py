@@ -44,6 +44,10 @@ def addAmount():
     db.execute('INSERT INTO entries (date, monthcode, daycode, type, amount) VALUES (?,?,?,?,?)',
       [request.form['date'], request.form['monthcode'], request.form['daycode'], request.form['type'], request.form['amount']])
     db.commit()
+    cur = db.execute('SELECT name FROM types WHERE id = ?', [request.form['type']])
+    typeName = cur.fetchall()[0][0]
+    print typeName
+    flash('{} added to {}'.format(request.form['amount'], typeName))
     return redirect(url_for('index'))
 
 @app.route('/report')
