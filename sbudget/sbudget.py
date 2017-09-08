@@ -61,8 +61,8 @@ def report():
     monthBudget = settings[0]['monthlyBudget']
     cur = db.execute('SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
     monthSpent = cur.fetchone()['total'] or 0
-    cur = db.execute('SELECT AVG(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
-    dailyAvgSpent = cur.fetchone()['total'] or 0
+    cur = db.execute('SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
+    dailyAvgSpent = ( cur.fetchone()['total'] or 0 ) / daycode
     monthLeft = monthBudget - monthSpent
     dailyAvgFuture = monthLeft / daysleft
     report = {
