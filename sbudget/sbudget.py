@@ -12,8 +12,6 @@ app.config.from_object(__name__)
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'sbudget.db'),
     SECRET_KEY=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(32)),
-    USERNAME='admin',
-    PASSWORD='default'
 ))
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
