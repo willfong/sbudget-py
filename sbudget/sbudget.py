@@ -61,7 +61,7 @@ def report():
     db = get_db()
     cur = db.execute('SELECT * FROM settings');
     settings = cur.fetchall()[0]
-    monthBudget = settings[0]['monthlyBudget']
+    monthBudget = settings['monthlyBudget']
     cur = db.execute('SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
     monthSpent = cur.fetchone()['total'] or 0
     cur = db.execute('SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
