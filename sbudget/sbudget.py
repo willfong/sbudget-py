@@ -60,7 +60,7 @@ def report():
     daysleft = int(monthrange(int(time.strftime("%Y")), int(time.strftime("%m")))[1]) - int(time.strftime("%d"))
     db = get_db()
     cur = db.execute('SELECT * FROM settings');
-    settings = cur.fetchall()
+    settings = cur.fetchall()[0]
     monthBudget = settings[0]['monthlyBudget']
     cur = db.execute('SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?', [monthcode]);
     monthSpent = cur.fetchone()['total'] or 0
@@ -69,12 +69,12 @@ def report():
     monthLeft = monthBudget - monthSpent
     dailyAvgFuture = monthLeft / daysleft
     report = {
-      "monthbudget": formatMoney(monthBudget),
-      "monthspent": formatMoney(monthSpent),
-      "monthleft": formatMoney(monthLeft),
-      "dailyavgspent": formatMoney(dailyAvgSpent),
+      "monthbudget": formatMoney(monthBudget, settings["decimalPlaces"], settings["displayCurrency"]),
+      "monthspent": formatMoney(monthSpent, settings["decimalPlaces"], settings["displayCurrency"]),
+      "monthleft": formatMoney(monthLeft, settings["decimalPlaces"], settings["displayCurrency"]),
+      "dailyavgspent": formatMoney(dailyAvgSpent, settings["decimalPlaces"], settings["displayCurrency"]),
       "daysleft": daysleft,
-      "dailyavgfuture": formatMoney(dailyAvgFuture)
+      "dailyavgfuture": formatMoney(dailyAvgFuture, settings["decimalPlaces"], settings["displayCurrency"])
     }
     cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.date DESC', [monthcode])
     lastLog = cur.fetchall()
