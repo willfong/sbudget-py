@@ -5,23 +5,23 @@
   <tbody>
     <tr>
       <td>Monthly Budget</td>
-      <td>{{report.monthbudget}}</td>
+      <td class="text-right">{{report.monthbudget}}</td>
     </tr>
     <tr>
       <td>Currently Spent</td>
-      <td>{{report.monthspent}}</td>
+      <td class="text-right">{{report.monthspent}}</td>
     </tr>
     <tr>
       <td>Monthly Left</td>
-      <td>{{report.monthleft}}</td>
+      <td class="text-right">{{report.monthleft}}</td>
     </tr>
     <tr>
       <td>Daily Average</td>
-      <td>{{report.dailyavgspent}}</td>
+      <td class="text-right">{{report.dailyavgspent}}</td>
     </tr>
     <tr>
       <td>Daily Allowance (for {{report.daysleft}} days)</td>
-      <td>{{report.dailyavgfuture}}</td>
+      <td class="text-right">{{report.dailyavgfuture}}</td>
     </tr>
 
   </tbody>
@@ -32,7 +32,7 @@
     <tr>
       <td class="fmtdate">{{item.date}}</td>
       <td>{{item.name}}</td>
-      <td>{{item.amount}}</td>
+      <td class="text-right">{{item.amount}}</td>
     </tr>
     {% endfor %}
   </tbody>
