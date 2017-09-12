@@ -26,7 +26,7 @@ def get_db():
     return g.sqlite_db
 
 def formatMoney(amount, decimalPlaces, displayCurrency):
-    return "{}{}".format(displayCurrency, round(amount, decimalPlaces))
+    return '{0:.{p}f}'.format(round(amount, decimalPlaces), p = displayCurrency)
 
 @app.teardown_appcontext
 def close_db(error):
