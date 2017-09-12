@@ -25,6 +25,9 @@ def get_db():
         g.sqlite_db = connect_db()
     return g.sqlite_db
 
+def formatMoney(amount, decimalPlaces, displayCurrency):
+    return "{}{}".format(displayCurrency, round(amount, decimalPlaces))
+
 @app.teardown_appcontext
 def close_db(error):
     if hasattr(g, 'sqlite_db'):
@@ -66,12 +69,12 @@ def report():
     monthLeft = monthBudget - monthSpent
     dailyAvgFuture = monthLeft / daysleft
     report = {
-      "monthbudget": monthBudget,
-      "monthspent": monthSpent,
-      "monthleft": monthLeft,
-      "dailyavgspent": dailyAvgSpent,
+      "monthbudget": formatMoney(monthBudget),
+      "monthspent": formatMoney(monthSpent),
+      "monthleft": formatMoney(monthLeft),
+      "dailyavgspent": formatMoney(dailyAvgSpent),
       "daysleft": daysleft,
-      "dailyavgfuture": dailyAvgFuture
+      "dailyavgfuture": formatMoney(dailyAvgFuture)
     }
     cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.date DESC', [monthcode])
     lastLog = cur.fetchall()
@@ -80,13 +83,19 @@ def report():
 @app.route('/settings')
 def settings():
     db = get_db()
-    cur = db.execute('SELECT * FROM settings');
+    cur = db.execute('SELECT monthlyBudget, decimalPlaces, displayCurrency FROM settings');
     settings = cur.fetchall()
     return render_template('settings.html', settings=settings[0])
 
 @app.route('/settigs/update', methods=['POST'])
 def settingsUpdate():
     db = get_db()
-    db.execute('UPDATE settings SET monthlyBudget = ?', [request.form['monthlybudget']])
+    if request.form['monthlybudget']:
+        db.execute('UPDATE settings SET monthlyBudget = ?', [request.form['monthlyBudget']])
+    if request.form['decimalPlaces']:
+        db.execute('UPDATE settings SET decimalPlaces = ?', [request.form['decimalPlaces']])
+    if request.form['displayCurrency']:
+        db.execute('UPDATE settings SET displayCurrency = ?', [request.form['displayCurrency']])
+
     db.commit()
     return redirect(url_for('report'))

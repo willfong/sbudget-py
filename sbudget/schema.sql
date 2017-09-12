@@ -16,6 +16,8 @@ INSERT INTO types ( name ) VALUES
   ('Food'), ('Bills'), ('Others');
 
 CREATE TABLE settings (
-  monthlyBudget INTEGER
+  monthlyBudget INTEGER,
+  decimalPlaces INTEGER,
+  displayCurrency TEXT
 );
-INSERT INTO settings ( monthlyBudget ) VALUES ( 1000);
+INSERT INTO settings ( monthlyBudget, decimalPlaces, displayCurrency ) VALUES ( 1000, 2, 'S$');
