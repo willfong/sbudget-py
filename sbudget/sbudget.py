@@ -78,7 +78,7 @@ def report():
     }
     cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.date DESC', [monthcode])
     lastLog = cur.fetchall()
-    return render_template('report.html', report=report, lastLog=lastLog)
+    return render_template('report.html', report=report, lastLog=lastLog, settings=settings)
 
 @app.route('/settings')
 def settings():
