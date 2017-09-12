@@ -90,7 +90,7 @@ def settings():
 @app.route('/settigs/update', methods=['POST'])
 def settingsUpdate():
     db = get_db()
-    if request.form['monthlybudget']:
+    if request.form['monthlyBudget']:
         db.execute('UPDATE settings SET monthlyBudget = ?', [request.form['monthlyBudget']])
     if request.form['decimalPlaces']:
         db.execute('UPDATE settings SET decimalPlaces = ?', [request.form['decimalPlaces']])
