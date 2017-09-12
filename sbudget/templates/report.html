@@ -32,7 +32,7 @@
     <tr>
       <td class="fmtdate">{{item.date}}</td>
       <td>{{item.name}}</td>
-      <td class="text-right">{{formatMoney(item.amount, settings["decimalPlaces"], settings["displayCurrency"])}}</td>
+      <td class="text-right">{{formatMoney(item.amount, settings.decimalPlaces, settings.displayCurrency)}}</td>
     </tr>
     {% endfor %}
   </tbody>
