@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS entries;
 CREATE TABLE entries (
   id INTEGER PRIMARY KEY,
   date TEXT,
@@ -7,14 +8,16 @@ CREATE TABLE entries (
   amount NUMERIC
 );
 
+DROP TABLE IF EXISTS types;
 CREATE TABLE types (
   id INTEGER PRIMARY KEY,
   name TEXT
 );
 
 INSERT INTO types ( name ) VALUES
-  ('Food'), ('Bills'), ('Others');
+  ('Food'), ('Taxi'), ('Others'), ('Bills');
 
+DROP TABLE IF EXISTS settings;
 CREATE TABLE settings (
   monthlyBudget INTEGER,
   decimalPlaces INTEGER,
