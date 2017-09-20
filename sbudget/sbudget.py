@@ -38,7 +38,7 @@ def index():
     db = get_db()
     cur = db.execute('SELECT id, name FROM types')
     types = cur.fetchall()
-    cur = db.execute('SELECT e.id AS id, e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id ORDER BY e.dt DESC LIMIT 5')
+    cur = db.execute('SELECT e.id AS id, e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id ORDER BY e.id DESC LIMIT 5')
     last5 = cur.fetchall()
     return render_template('index.html', types=types, last5=last5)
 
@@ -76,7 +76,7 @@ def report():
       "daysleft": daysleft,
       "dailyavgfuture": formatMoney(dailyAvgFuture, settings["decimalPlaces"], settings["displayCurrency"])
     }
-    cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.dt DESC', [monthcode])
+    cur = db.execute('SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.id DESC', [monthcode])
     lastLog = cur.fetchall()
     return render_template('report.html', report=report, lastLog=lastLog, settings=settings)
 

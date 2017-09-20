@@ -1,7 +1,6 @@
 DROP TABLE IF EXISTS entries;
 CREATE TABLE entries (
   id INTEGER PRIMARY KEY,
-  dt DATETIME DEFAULT current_timestamp,
   date TEXT,
   monthcode INTEGER,
   daycode INTEGER,
