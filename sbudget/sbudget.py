@@ -58,6 +58,8 @@ def report():
     monthcode = time.strftime("%Y%m")
     daycode = time.strftime("%d")
     daysleft = int(monthrange(int(time.strftime("%Y")), int(time.strftime("%m")))[1]) - int(time.strftime("%d"))
+    if daysleft == 0:
+        daysleft = 1
     db = get_db()
     cur = db.execute('SELECT * FROM settings');
     settings = cur.fetchall()[0]
