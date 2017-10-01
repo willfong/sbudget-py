@@ -7,16 +7,12 @@ from calendar import monthrange
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
 app = Flask(__name__)
-app.config.from_object(__name__)
 
-app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'sbudget.db'),
-    SECRET_KEY=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(32)),
-))
-app.config.from_envvar('FLASKR_SETTINGS', silent=True)
+app.secret_key = os.environ['SECRET_KEY']
+DATABASE=os.path.join(app.root_path, 'sbudget.db')
 
 def connect_db():
-    rv = sqlite3.connect(app.config['DATABASE'])
+    rv = sqlite3.connect(DATABASE)
     rv.row_factory = sqlite3.Row
     return rv
 
