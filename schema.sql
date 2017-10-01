@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS settings;
 CREATE TABLE settings (
   monthlyBudget INTEGER,
   decimalPlaces INTEGER,
-  displayCurrency TEXT
+  displayCurrency TEXT,
+  exchangeRate NUMERIC
 );
-INSERT INTO settings ( monthlyBudget, decimalPlaces, displayCurrency ) VALUES ( 1000, 2, 'S$');
+INSERT INTO settings ( monthlyBudget, decimalPlaces, displayCurrency, exchangeRate ) VALUES ( 1000, 2, 'S$', 1);

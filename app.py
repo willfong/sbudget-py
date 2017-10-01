@@ -36,6 +36,10 @@ def close_db(error):
 @app.route('/')
 def index():
     db = get_db()
+    cur = db.execute('SELECT exchangeRate FROM settings')
+    exchangeRate = cur.fetchall()[0][0]
+    if exchangeRate != 1:
+        flash('Exchange rate enabled: 1 home currency = {} local currency'.format(exchangeRate), 'warning')
     cur = db.execute('SELECT id, name FROM types')
     types = cur.fetchall()
     cur = db.execute('SELECT e.id AS id, e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id ORDER BY e.id DESC LIMIT 5')
@@ -45,12 +49,20 @@ def index():
 @app.route('/addAmount', methods=['POST'])
 def addAmount():
     db = get_db()
+    cur = db.execute('SELECT decimalPlaces, exchangeRate FROM settings')
+    decimalPlaces, exchangeRate = cur.fetchall()[0]
+    if exchangeRate != 1:
+        amount = round( float(request.form['amount']) * (1.0 / exchangeRate), decimalPlaces )
+    else:
+        print "No exchange rate found"
+        amount = request.form['amount']
+
     db.execute('INSERT INTO entries (date, monthcode, daycode, type, amount) VALUES (?,?,?,?,?)',
-      [request.form['date'], request.form['monthcode'], request.form['daycode'], request.form['type'], request.form['amount']])
+      [request.form['date'], request.form['monthcode'], request.form['daycode'], request.form['type'], amount])
     db.commit()
     cur = db.execute('SELECT name FROM types WHERE id = ?', [request.form['type']])
     typeName = cur.fetchall()[0][0]
-    flash('{} added to {}'.format(request.form['amount'], typeName))
+    flash('{} added to {}'.format(amount, typeName))
     return redirect(url_for('index'))
 
 @app.route('/report')
@@ -85,7 +97,7 @@ def report():
 @app.route('/settings')
 def settings():
     db = get_db()
-    cur = db.execute('SELECT monthlyBudget, decimalPlaces, displayCurrency FROM settings');
+    cur = db.execute('SELECT monthlyBudget, decimalPlaces, displayCurrency, exchangeRate FROM settings');
     settings = cur.fetchall()
     return render_template('settings.html', settings=settings[0])
 
@@ -98,6 +110,8 @@ def settingsUpdate():
         db.execute('UPDATE settings SET decimalPlaces = ?', [request.form['decimalPlaces']])
     if request.form['displayCurrency']:
         db.execute('UPDATE settings SET displayCurrency = ?', [request.form['displayCurrency']])
+    if request.form['exchangeRate']:
+        db.execute('UPDATE settings SET exchangeRate = ?', [request.form['exchangeRate']])
 
     db.commit()
     return redirect(url_for('report'))
