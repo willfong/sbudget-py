@@ -1,6 +1,6 @@
-# sbudget-py
-SimpleBudget - Python Flask
+# SimpleBudget
 
+Keep to your budget. 
 
 ### Run with:
 ```
