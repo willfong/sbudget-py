@@ -85,7 +85,6 @@ def report():
     monthBudget, decimalPlaces, displayCurrency, exchangeRate = read_db(query, one=True)
     query = ("SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?")
     args = (monthcode,)
-    print monthcode
     monthSpent = read_db(query, args, one=True)[0] or 0
     query = ("SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?")
     args = (monthcode,)
