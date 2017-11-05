@@ -148,6 +148,10 @@ def settings():
 @app.route('/settigs/update', methods=['POST'])
 @login_required
 def settingsUpdate():
+    if request.form['password']:
+        query = ("UPDATE users SET password = ? WHERE id = ?")
+        args = (hashlib.sha256(request.form['password']).hexdigest(), session['user_id'])
+        write_db(query, args)
     if request.form['monthlyBudget']:
         query = ("UPDATE users SET monthlyBudget = ? WHERE id = ?")
         args = (request.form['monthlyBudget'], session['user_id'])

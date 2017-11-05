@@ -2,6 +2,10 @@
 {% block body %}
 <form action={{url_for('settingsUpdate')}} method="post">
   <div class="form-group">
+    <label for="password">Password</label>
+    <input type="text" name="password" class="form-control" placeholder="">
+  </div>
+  <div class="form-group">
     <label for="monthlyBudget">Monthly Budget</label>
     <input type="number" name="monthlyBudget" class="form-control" placeholder="{{settings.monthlyBudget}}">
   </div>
