@@ -37,16 +37,23 @@ def read_db(query, params=(), one=False):
     except sqlite3.OperationalError as err:
         print "Database Error: {}".format(err)
 
-def write_db(query, params=()):
+def write_db(query, params=(), last_id=False):
     if isinstance(params, tuple):
         args = params
     else:
         args = (params,)
     try:
-        get_db().cursor().execute(query, args)
+        cur = get_db().cursor()
+        cur.execute(query, args)
         get_db().commit()
-    except sqlite3.OperationalError as err:
+    except sqlite3.Error as err:
+        # TODO: need a way to determine operational error
         print "Database Error: {}".format(err)
+        return False
+    if last_id:
+        return cur.lastrowid
+    else:
+        return True
 
 def formatMoney(amount, decimalPlaces, displayCurrency):
     return '{c}{0:.{p}f}'.format(round(amount, decimalPlaces), p = decimalPlaces, c = displayCurrency)
@@ -173,13 +180,21 @@ def settingsUpdate():
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
-        query = ("SELECT id FROM users WHERE username = ? AND password = ?")
-        params = (request.form['username'], hashlib.sha256(request.form['password']).hexdigest())
-        user = read_db(query, params, one=True)
-        if user is None:
-            flash('Username/Password not found!', 'danger')
-        else:
-            session['user_id'] = user['id']
+        if request.form['action'] == 'login':
+            query = ("SELECT id FROM users WHERE username = ? AND password = ?")
+            params = (request.form['username'], hashlib.sha256(request.form['password']).hexdigest())
+            user = read_db(query, params, one=True)
+            if user is None:
+                flash('Username/Password not found!', 'danger')
+            else:
+                session['user_id'] = user['id']
+                return redirect(url_for('main'))
+        if request.form['action'] == 'create':
+            query = ("INSERT INTO users (username, password, monthlyBudget, decimalPlaces, displayCurrency, exchangeRate) VALUES (?,?,?,?,?,?)")
+            params = (request.form['username'], hashlib.sha256(request.form['password']).hexdigest(), 1000, 2, '$', 1)
+            # TODO: Should refactor this to check for errors
+            user_id = write_db(query, params, last_id=True)
+            session['user_id'] = user_id
             return redirect(url_for('main'))
     return render_template('login.html')
 
