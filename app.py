@@ -2,10 +2,13 @@ import os
 import sqlite3
 import string
 import random
+import hashlib
 import time
+from functools import wraps
 from calendar import monthrange
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
+
 app = Flask(__name__)
 
 app.secret_key = os.environ['SECRET_KEY']
@@ -21,7 +24,11 @@ def get_db():
         g.sqlite_db = connect_db()
     return g.sqlite_db
 
-def read_db(query, args=(), one=False):
+def read_db(query, params=(), one=False):
+    if isinstance(params, tuple):
+        args = params
+    else:
+        args = (params,)
     try:
         cur = get_db().execute(query, args)
         rv = cur.fetchall()
@@ -30,7 +37,11 @@ def read_db(query, args=(), one=False):
     except sqlite3.OperationalError as err:
         print "Database Error: {}".format(err)
 
-def write_db(query, args=()):
+def write_db(query, params=()):
+    if isinstance(params, tuple):
+        args = params
+    else:
+        args = (params,)
     try:
         get_db().cursor().execute(query, args)
         get_db().commit()
@@ -40,6 +51,15 @@ def write_db(query, args=()):
 def formatMoney(amount, decimalPlaces, displayCurrency):
     return '{c}{0:.{p}f}'.format(round(amount, decimalPlaces), p = decimalPlaces, c = displayCurrency)
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not 'user_id' in session:
+            flash('Please login first', 'warning')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.teardown_appcontext
 def close_db(error):
     if hasattr(g, 'sqlite_db'):
@@ -47,47 +67,60 @@ def close_db(error):
 
 @app.route('/')
 def index():
-    query = ("SELECT exchangeRate FROM settings")
-    exchangeRate = read_db(query, one=True)[0]
+    return render_template('index.html')
+
+@app.route('/main')
+@login_required
+def main():
+    query = ("SELECT exchangeRate FROM users WHERE id = ?")
+    params = (session['user_id'])
+    exchangeRate = read_db(query, params, one=True)[0]
     if exchangeRate != 1:
         flash('Exchange rate enabled: 1 home currency = {} local currency'.format(exchangeRate), 'warning')
-    query = ("SELECT id, name FROM types")
-    types = read_db(query)
-    query = ("SELECT e.id AS id, e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id ORDER BY e.id DESC LIMIT 5")
-    last5 = read_db(query)
-    return render_template('index.html', types=types, last5=last5)
+    query = ("SELECT id, name FROM types WHERE users_id = ?")
+    params = (session['user_id'])
+    types = read_db(query, params)
+    query = ("SELECT e.id AS id, e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE e.users_id = ? ORDER BY e.id DESC LIMIT 5")
+    params = (session['user_id'])
+    last5 = read_db(query, params)
+    return render_template('main.html', types=types, last5=last5)
+
 
 @app.route('/addAmount', methods=['POST'])
+@login_required
 def addAmount():
-    query = ("SELECT decimalPlaces, exchangeRate FROM settings")
-    decimalPlaces, exchangeRate = read_db(query, one=True)
+    query = ("SELECT decimalPlaces, exchangeRate FROM users WHERE id = ?")
+    params = (session['user_id'])
+    decimalPlaces, exchangeRate = read_db(query, params, one=True)
     if exchangeRate != 1:
         amount = round(float(request.form['amount']) * (1.0 / exchangeRate), decimalPlaces)
     else:
         amount = request.form['amount']
-    query = ("INSERT INTO entries (date, monthcode, daycode, type, amount) VALUES (?,?,?,?,?)")
-    args = (request.form['date'], request.form['monthcode'], request.form['daycode'], request.form['type'], amount)
+    query = ("INSERT INTO entries (users_id, date, monthcode, daycode, type, amount) VALUES (?, ?,?,?,?,?)")
+    args = (session['user_id'], request.form['date'], request.form['monthcode'], request.form['daycode'], request.form['type'], amount)
     write_db(query, args)
-    query = ("SELECT name FROM types WHERE id = ?")
-    args = (request.form['type'])
+    query = ("SELECT name FROM types WHERE id = ? AND users_id = ?")
+    args = (request.form['type'], session['user_id'])
     typeName = read_db(query, args, one=True)[0]
-    flash("{} added to {}".format(amount, typeName))
-    return redirect(url_for('index'))
+    flash("{} added to {}".format(amount, typeName), 'success')
+    return redirect(url_for('main'))
 
 @app.route('/report')
+@login_required
 def report():
     monthcode = time.strftime("%Y%m")
     daycode = time.strftime("%d")
     daysleft = int(monthrange(int(time.strftime("%Y")), int(time.strftime("%m")))[1]) - int(time.strftime("%d"))
     if daysleft == 0:
         daysleft = 1
-    query = ("SELECT monthlyBudget, decimalPlaces, displayCurrency, exchangeRate FROM settings")
-    monthBudget, decimalPlaces, displayCurrency, exchangeRate = read_db(query, one=True)
-    query = ("SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?")
-    args = (monthcode,)
+    query = ("SELECT monthlyBudget, decimalPlaces, displayCurrency, exchangeRate FROM users WHERE id = ?")
+    params = (session['user_id'])
+    monthBudget, decimalPlaces, displayCurrency, exchangeRate = read_db(query, params, one=True)
+    query = ("SELECT SUM(amount) AS total FROM entries WHERE monthcode = ? AND users_id = ?")
+    args = (monthcode, session['user_id'])
     monthSpent = read_db(query, args, one=True)[0] or 0
-    query = ("SELECT SUM(amount) AS total FROM entries WHERE monthcode = ?")
-    args = (monthcode,)
+    query = ("SELECT SUM(amount) AS total FROM entries WHERE monthcode = ? AND users_id = ?")
+    args = (monthcode, session['user_id'])
     dailyAvgSpent = float(read_db(query, args, one=True)[0] or 0) / float(daycode)
     monthLeft = monthBudget - monthSpent
     dailyAvgFuture = monthLeft / daysleft
@@ -99,33 +132,54 @@ def report():
       "daysleft": daysleft,
       "dailyavgfuture": formatMoney(dailyAvgFuture, decimalPlaces, displayCurrency)
     }
-    query = ("SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? ORDER BY e.id DESC")
-    args = (monthcode,)
+    query = ("SELECT e.date AS date, t.name AS name, e.amount AS amount FROM entries AS e INNER JOIN types AS t ON e.type = t.id WHERE monthcode = ? AND e.users_id = ? ORDER BY e.id DESC")
+    args = (monthcode, session['user_id'])
     lastLog = read_db(query, args)
     return render_template('report.html', report=report, lastLog=lastLog, settings=settings)
 
 @app.route('/settings')
+@login_required
 def settings():
-    query = ("SELECT monthlyBudget, decimalPlaces, displayCurrency, exchangeRate FROM settings")
-    settings = read_db(query)
+    query = ("SELECT monthlyBudget, decimalPlaces, displayCurrency, exchangeRate FROM users WHERE id = ?")
+    params = (session['user_id'])
+    settings = read_db(query, params)
     return render_template('settings.html', settings=settings[0])
 
 @app.route('/settigs/update', methods=['POST'])
+@login_required
 def settingsUpdate():
     if request.form['monthlyBudget']:
-        query = ("UPDATE settings SET monthlyBudget = ?")
-        args = (request.form['monthlyBudget'],)
+        query = ("UPDATE users SET monthlyBudget = ? WHERE id = ?")
+        args = (request.form['monthlyBudget'], session['user_id'])
         write_db(query, args)
     if request.form['decimalPlaces']:
-        query = ("UPDATE settings SET decimalPlaces = ?")
-        args = (request.form['decimalPlaces'],)
+        query = ("UPDATE users SET decimalPlaces = ? WHERE id = ?")
+        args = (request.form['decimalPlaces'], session['user_id'])
         write_db(query, args)
     if request.form['displayCurrency']:
-        query = ("UPDATE settings SET displayCurrency = ?")
-        args = (request.form['displayCurrency'],)
+        query = ("UPDATE users SET displayCurrency = ? WHERE id = ?")
+        args = (request.form['displayCurrency'], session['user_id'])
         write_db(query, args)
     if request.form['exchangeRate']:
-        query = ("UPDATE settings SET exchangeRate = ?")
-        args = (request.form['exchangeRate'],)
+        query = ("UPDATE users SET exchangeRate = ? WHERE id = ?")
+        args = (request.form['exchangeRate'], session['user_id'])
         write_db(query, args)
     return redirect(url_for('report'))
+
+@app.route('/login', methods=['GET','POST'])
+def login():
+    if request.method == 'POST':
+        query = ("SELECT id FROM users WHERE username = ? AND password = ?")
+        params = (request.form['username'], hashlib.sha256(request.form['password']).hexdigest())
+        user = read_db(query, params, one=True)
+        if user is None:
+            flash('Username/Password not found!', 'danger')
+        else:
+            session['user_id'] = user['id']
+            return redirect(url_for('main'))
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('index'))
