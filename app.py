@@ -150,7 +150,19 @@ def settings():
     query = ("SELECT monthlyBudget, decimalPlaces, displayCurrency, exchangeRate FROM users WHERE id = ?")
     params = (session['user_id'])
     settings = read_db(query, params)
-    return render_template('settings.html', settings=settings[0])
+    query = ("SELECT id, name FROM types WHERE users_id = ? ORDER BY name")
+    params = (session['user_id'])
+    types = read_db(query, params)
+    return render_template('settings.html', settings=settings[0], types=types)
+
+@app.route('/settings/addtype', methods=['POST'])
+@login_required
+def settingsAddType():
+    query = ("INSERT INTO types (users_id, name) VALUES (?,?)")
+    params = (session['user_id'], request.form['newtype'])
+    write_db(query, params)
+    flash("New Setting Added: {}".format(request.form['newtype']), 'success')
+    return redirect(url_for('settings'))
 
 @app.route('/settigs/update', methods=['POST'])
 @login_required
